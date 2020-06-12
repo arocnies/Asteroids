@@ -2,7 +2,7 @@ import com.soywiz.korge.*
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.Colors
 
-suspend fun main() = Korge(width = 2048, height = 1024, bgcolor = Colors.LIGHTGREEN) {
+suspend fun main() = Korge(width = 1024, height = 720, bgcolor = Colors.DARKGRAY) {
     val game = Game(this)
     game.start()
 }
