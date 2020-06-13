@@ -35,6 +35,7 @@ class Game(val stage: Stage) {
                 .anchor(.5, .5)
                 .position(512, 512)
         playerShip = Ship(shipSprite)
+        playerShip.xVel += 0.05
         installShipControls()
         stage.addChild(shipSprite)
     }
@@ -61,11 +62,11 @@ class Game(val stage: Stage) {
 
     private fun installGravity() {
         stage.addUpdater {
-            val gravityConstant = 100.0
+            val gravityConstant = 0.00001
             val angleShipToEarth: Angle = playerShip.sprite.pos.angleTo(earth.sprite.pos)
             val distanceShipToEarth: Double = earth.sprite.pos.distanceTo(playerShip.sprite.pos)
-            val magnitude = (playerShip.mass * gravityConstant) / distanceShipToEarth.pow(2)
-            playerShip.applyForce(magnitude, angleShipToEarth)
+            val magnitude = (playerShip.mass * earth.mass * gravityConstant) / distanceShipToEarth.pow(2)
+            playerShip.applyForce(magnitude * it.milliseconds, angleShipToEarth)
         }
     }
 

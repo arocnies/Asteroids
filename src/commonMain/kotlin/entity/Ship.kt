@@ -3,15 +3,16 @@ package entity
 import MassObject
 import com.soywiz.korge.view.Sprite
 
-class Ship(sprite: Sprite) : MassObject(mass = 200.0, sprite = sprite) {
-	private val thrustStrength = 1.0
+class Ship(sprite: Sprite) : MassObject(mass = 2000.0, sprite = sprite) {
+	private val thrustStrength = 0.1
+	private val torqueStrength = 1.0
 	val health: Int = 100
 
 	fun thrustLeft() {
-		applyTorque(-thrustStrength)
+		applyTorque(-torqueStrength)
 	}
 	fun thrustRight() {
-		applyTorque(thrustStrength)
+		applyTorque(torqueStrength)
 	}
 	fun thrustForward() {
 		applyForce(thrustStrength, angle = sprite.rotation)
