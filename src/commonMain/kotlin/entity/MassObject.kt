@@ -1,10 +1,9 @@
-import com.soywiz.klock.TimeSpan
-import com.soywiz.korge.time.timeout
-import com.soywiz.korge.view.*
-import com.soywiz.korim.color.Colors
+package entity
+
+import com.soywiz.korge.view.Sprite
+import com.soywiz.korge.view.addUpdater
 import com.soywiz.korma.geom.Angle
 import com.soywiz.korma.geom.cos
-import com.soywiz.korma.geom.shape.Shape2d
 import com.soywiz.korma.geom.sin
 
 /**
