@@ -7,11 +7,11 @@ import com.soywiz.korim.bitmap.Bitmap
 import com.soywiz.korim.format.readBitmap
 import com.soywiz.korio.file.std.resourcesVfs
 import com.soywiz.korma.geom.Angle
+import com.soywiz.korma.geom.Point
 import debug.Debug
 import entity.Earth
 import entity.MassObject
 import entity.Ship
-import kotlin.math.pow
 
 class Game(val stage: Stage) {
     val resources = mutableMapOf<String, Bitmap>()
@@ -25,7 +25,7 @@ class Game(val stage: Stage) {
         setupEarth()
         setupPlayerShip()
         installGravity()
-        setupDebugLines()
+        //setupDebugLines()
     }
 
     private suspend fun loadResources() {
@@ -38,12 +38,12 @@ class Game(val stage: Stage) {
     private fun setupPlayerShip() {
         val shipSprite = Sprite(resources["ship"] ?: error("Could not find ship resource"))
                 .anchor(.5, .5)
-                .position(512, 512)
+                .position(stage.width / 3, stage.height / 2)
         val thrustParticle = stage.particleEmitter(particles["thrust"] ?: error("Could not find thrust particle"))
                 .scale(0.3, 0.3)
                 .rotation(Angle.fromDegrees(-90))
         playerShip = Ship(shipSprite, thrustParticle)
-        playerShip.xVel += 0.05
+        playerShip.yVel += earth.getOrbitalVelocityOfDistance(playerShip.sprite.pos.distanceTo(Point(stage.x / 2, stage.y / 2)))
         installShipControls()
         stage.addChild(shipSprite)
     }
@@ -75,11 +75,10 @@ class Game(val stage: Stage) {
 
     private fun installGravity() {
         stage.addUpdater {
-            val gravityConstant = 0.00001
-            val angleShipToEarth: Angle = playerShip.sprite.pos.angleTo(earth.sprite.pos)
-            val distanceShipToEarth: Double = earth.sprite.pos.distanceTo(playerShip.sprite.pos)
-            val magnitude = (playerShip.mass * earth.mass * gravityConstant) / distanceShipToEarth.pow(2)
-            playerShip.applyForce(magnitude * it.milliseconds, angleShipToEarth)
+            val gravForce = earth.getGravForce(playerShip)
+            gravForce.x = gravForce.x * it.milliseconds
+            gravForce.y = gravForce.y * it.milliseconds
+            playerShip.applyForce(gravForce)
         }
     }
 
