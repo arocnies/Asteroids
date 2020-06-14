@@ -6,7 +6,7 @@ import kotlin.random.Random
 suspend fun main() = Korge(width = 1600, height = 900, bgcolor = Colors["#010a19"], fullscreen = true) {
     setupStarField(SolidRect(width = 1.0, height = 1.0, color = Colors.WHITE), 0.01)
 
-    val game = Game(this)
+    val game = Game(this, this)
     game.start()
 }
 

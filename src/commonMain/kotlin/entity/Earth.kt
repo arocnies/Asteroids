@@ -21,7 +21,7 @@ class Earth(val sprite: Sprite) {
         return Point(x = cos(angleObjectToEarth) * magnitude, y = sin(angleObjectToEarth) * magnitude)
     }
 
-    fun getOrbitalVelocityOfDistance(distanceToEarth: Double): Double {
-        return sqrt((gravityConstant * mass) / distanceToEarth)
+    fun getOrbitalVelocity(massObject: MassObject): Double {
+        return sqrt((gravityConstant * mass) / massObject.sprite.pos.distanceTo(sprite.pos))
     }
 }
