@@ -1,19 +1,53 @@
 package entity
 
+import com.soywiz.korge.particle.ParticleEmitter
 import com.soywiz.korge.particle.ParticleEmitterView
-import com.soywiz.korge.view.Sprite
-import com.soywiz.korge.view.position
+import com.soywiz.korge.particle.particleEmitter
+import com.soywiz.korge.view.*
+import com.soywiz.korma.geom.Angle
 
-class Ship(sprite: Sprite, val thrust: ParticleEmitterView) : MassObject(mass = 2000.0, sprite = sprite) {
+class Ship(sprite: Sprite, val thrustEmitter: ParticleEmitter) : MassObject(mass = 2000.0, sprite = sprite) {
 	val startingFuel = 3000.0
     var fuel: Double = startingFuel
     private val thrustStrength = 0.1
 	private val torqueStrength = 1.0
-	val health: Int = 100
+
+	val forwardThrust: ParticleEmitterView
+	val frontLeftThrust: ParticleEmitterView
+	val frontRightThrust: ParticleEmitterView
+	val backLeftThrust: ParticleEmitterView
+	val backRightThrust: ParticleEmitterView
 
 	init {
-		thrust.position(sprite.width / -2.0, 0.0).emitting = false
-		sprite.addChild(thrust)
+		forwardThrust = sprite.particleEmitter(thrustEmitter)
+				.scale(0.3, 0.3)
+				.rotation(Angle.fromDegrees(-90))
+				.position(sprite.width / -2.0, 0.0)
+		sprite.addChild(forwardThrust)
+
+		frontLeftThrust = sprite.particleEmitter(thrustEmitter)
+				.scale(0.2, 0.2)
+				.position(8.0, sprite.height / -2.0)
+				.rotation(Angle.fromDegrees(-30))
+		sprite.addChild(frontLeftThrust)
+
+		frontRightThrust = sprite.particleEmitter(thrustEmitter)
+				.scale(0.2, 0.2)
+				.position(8.0, sprite.height / 2.0)
+				.rotation(Angle.fromDegrees(180 + 30))
+		sprite.addChild(frontRightThrust)
+
+		backLeftThrust = sprite.particleEmitter(thrustEmitter)
+				.scale(0.2, 0.2)
+				.position(-5.0, sprite.height / -2.0)
+				.rotation(Angle.fromDegrees(30))
+		sprite.addChild(backLeftThrust)
+
+		backRightThrust = sprite.particleEmitter(thrustEmitter)
+				.scale(0.2, 0.2)
+				.position(-5.0, sprite.height / 2.0)
+				.rotation(Angle.fromDegrees(180 - 30))
+		sprite.addChild(backRightThrust)
 	}
 
 	fun thrustLeft() {

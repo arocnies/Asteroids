@@ -1,5 +1,6 @@
 import com.soywiz.korev.Key
 import com.soywiz.korev.keys
+import com.soywiz.korge.input.mouse
 import com.soywiz.korge.particle.ParticleEmitter
 import com.soywiz.korge.particle.particleEmitter
 import com.soywiz.korge.particle.readParticle
@@ -46,9 +47,7 @@ class Game(val stage: Stage, val container: Container) {
         val shipSprite = Sprite(resources["ship"] ?: error("Could not find ship resource"))
                 .anchor(.5, .5)
                 .position(container.width / 3, container.height / 2)
-        val thrustParticle = container.particleEmitter(particles["thrust"] ?: error("Could not find thrust particle"))
-                .scale(0.3, 0.3)
-                .rotation(Angle.fromDegrees(-90))
+        val thrustParticle = particles["thrust"] ?: error("Could not find thrust particle")
         playerShip = Ship(shipSprite, thrustParticle)
         playerShip.yVel += earth.getOrbitalVelocity(playerShip)
         installShipControls()
@@ -59,13 +58,27 @@ class Game(val stage: Stage, val container: Container) {
     private fun installShipControls() {
         val ks = KeyState(stage)
         container.addUpdater {
-            if (ks[Key.LEFT] || ks[Key.A]) playerShip.thrustLeft()
-            if (ks[Key.RIGHT] || ks[Key.D]) playerShip.thrustRight()
+            if (ks[Key.LEFT] || ks[Key.A]) {
+                playerShip.thrustLeft()
+                playerShip.frontRightThrust.emitting = true
+                playerShip.backLeftThrust.emitting = true
+            } else {
+                playerShip.frontRightThrust.emitting = false
+                playerShip.backLeftThrust.emitting = false
+            }
+            if (ks[Key.RIGHT] || ks[Key.D]) {
+                playerShip.thrustRight()
+                playerShip.frontLeftThrust.emitting = true
+                playerShip.backRightThrust.emitting = true
+            } else {
+                playerShip.frontLeftThrust.emitting = false
+                playerShip.backRightThrust.emitting = false
+            }
             if (ks[Key.UP] || ks[Key.W]) {
                 playerShip.thrustForward()
-                playerShip.thrust.emitting = true
+                playerShip.forwardThrust.emitting = true
             } else {
-                playerShip.thrust.emitting = false
+                playerShip.forwardThrust.emitting = false
             }
         }
         stage.keys {
@@ -85,8 +98,9 @@ class Game(val stage: Stage, val container: Container) {
 
         val bulletSprite = Sprite(resources["bullet"] ?: error("Could not find bullet resource"))
                 .anchor(0.5, 0.5)
+                .scale(2.0, 2.0)
                 .position(playerShip.sprite.pos)
-                .rotation(playerShip.sprite.rotation)
+                .rotation(playerShip.sprite.rotation + Angle.fromDegrees(90))
         val bullet = MassObject(mass = 5.0, sprite = bulletSprite).apply {
             xVel = playerShip.xVel
             yVel = playerShip.yVel
@@ -96,12 +110,13 @@ class Game(val stage: Stage, val container: Container) {
         installGravity(bullet)
         container.addChildAt(bulletSprite, container.getChildIndex(playerShip.sprite) - 1)
 
-        container.addUpdater {
+        bullet.sprite.addUpdater {
             asteroids.filter { bullet.sprite.collidesWith(it.sprite) }
                     .forEach {
                         it.hit()
                         asteroids -= it
                         bullet.sprite.removeFromParent()
+                        bullet.sprite.removeAllComponents()
                     }
         }
     }
