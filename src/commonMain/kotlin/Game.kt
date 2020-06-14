@@ -1,4 +1,5 @@
 import com.soywiz.korev.Key
+import com.soywiz.korev.keys
 import com.soywiz.korge.particle.ParticleEmitter
 import com.soywiz.korge.particle.particleEmitter
 import com.soywiz.korge.particle.readParticle
@@ -14,23 +15,23 @@ import entity.MassObject
 import entity.Ship
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextInt
 
 class Game(val stage: Stage, val container: Container) {
     val resources = mutableMapOf<String, Bitmap>()
     val particles = mutableMapOf<String, ParticleEmitter>()
+    val asteroids = mutableSetOf<Asteroid>()
     lateinit var playerShip: Ship
     lateinit var earth: Earth
-    val orbitalObjects = setOf<MassObject>()
 
     suspend fun start() {
         loadResources()
         setupEarth()
         setupPlayerShip()
-        installGravity()
         setupAsteroids(5)
-        //setupDebugLines()
+        setupDisplay()
     }
 
     private suspend fun loadResources() {
@@ -51,6 +52,7 @@ class Game(val stage: Stage, val container: Container) {
         playerShip = Ship(shipSprite, thrustParticle)
         playerShip.yVel += earth.getOrbitalVelocity(playerShip)
         installShipControls()
+        installGravity(playerShip)
         container.addChild(shipSprite)
     }
 
@@ -65,9 +67,42 @@ class Game(val stage: Stage, val container: Container) {
             } else {
                 playerShip.thrust.emitting = false
             }
-            if (ks[Key.SPACE]) {
+        }
+        stage.keys {
+            up(Key.SPACE) {
                 playerShip.fire()
+                fireProjectile()
             }
+        }
+    }
+
+    private fun fireProjectile() {
+        // createProjectileObject
+        // install collision detection
+        // set velocity vector
+        // add gravity
+        // add offScreenDeath
+
+        val bulletSprite = Sprite(resources["bullet"] ?: error("Could not find bullet resource"))
+                .anchor(0.5, 0.5)
+                .position(playerShip.sprite.pos)
+                .rotation(playerShip.sprite.rotation)
+        val bullet = MassObject(mass = 5.0, sprite = bulletSprite).apply {
+            xVel = playerShip.xVel
+            yVel = playerShip.yVel
+            rVel = playerShip.rVel
+        }
+        bullet.applyForce(0.1, playerShip.sprite.rotation)
+        installGravity(bullet)
+        container.addChildAt(bulletSprite, container.getChildIndex(playerShip.sprite) - 1)
+
+        container.addUpdater {
+            asteroids.filter { bullet.sprite.collidesWith(it.sprite) }
+                    .forEach {
+                        it.hit()
+                        asteroids -= it
+                        bullet.sprite.removeFromParent()
+                    }
         }
     }
 
@@ -79,12 +114,12 @@ class Game(val stage: Stage, val container: Container) {
         container.addChild(earthSprite)
     }
 
-    private fun installGravity() {
+    private fun installGravity(massObject: MassObject) {
         container.addUpdater {
-            val gravForce = earth.getGravForce(playerShip)
+            val gravForce = earth.getGravForce(massObject)
             gravForce.x = gravForce.x * it.milliseconds
             gravForce.y = gravForce.y * it.milliseconds
-            playerShip.applyForce(gravForce)
+            massObject.applyForce(gravForce)
         }
     }
 
@@ -108,22 +143,16 @@ class Game(val stage: Stage, val container: Container) {
             nAsteroid.xVel = cos(orbitAngle) * orbitVelocity
             nAsteroid.yVel = sin(orbitAngle) * orbitVelocity
 
-            container.addUpdater {
-                val gravForce = earth.getGravForce(nAsteroid)
-                gravForce.x = gravForce.x * it.milliseconds
-                gravForce.y = gravForce.y * it.milliseconds
-                nAsteroid.applyForce(gravForce)
-            }
+            installGravity(nAsteroid)
 
             container.addChild(nAsteroid.sprite)
+            asteroids += nAsteroid
         }
     }
 
-    private fun setupDebugLines() {
+    private fun setupDisplay() {
         val debug = Debug(container)
-        debug.track(playerShip::xVel) { playerShip.xVel }
-        debug.track(playerShip::yVel) { playerShip.yVel }
-        debug.track(playerShip::rVel) { playerShip.rVel }
-        debug.track(playerShip.sprite::rotation) { playerShip.sprite.rotation }
+        debug.track { "Asteroids remaining: ${asteroids.count()}" }
+        debug.track { "Fuel: ${(playerShip.fuel / 30.0).roundToInt()}%" }
     }
 }
