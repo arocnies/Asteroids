@@ -1,9 +1,8 @@
+import com.soywiz.korau.sound.readSound
 import com.soywiz.korev.Key
 import com.soywiz.korev.keys
-import com.soywiz.korge.input.mouse
-import com.soywiz.korge.input.onClick
+import com.soywiz.korge.animate.play
 import com.soywiz.korge.particle.ParticleEmitter
-import com.soywiz.korge.particle.particleEmitter
 import com.soywiz.korge.particle.readParticle
 import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.Bitmap
@@ -15,8 +14,6 @@ import entity.Asteroid
 import entity.Earth
 import entity.MassObject
 import entity.Ship
-import kotlin.math.max
-import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -45,22 +42,26 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
         particles += "thrust" to resourcesVfs["particle/thurst/particle.pex"].readParticle()
     }
 
-    private fun setupPlayerShip() {
+    private suspend fun setupPlayerShip() {
         val shipSprite = Sprite(resources["ship"] ?: error("Could not find ship resource"))
                 .anchor(.5, .5)
                 .position(container.width / 3, container.height / 2)
         val thrustParticle = particles["thrust"] ?: error("Could not find thrust particle")
-        playerShip = Ship(shipSprite, thrustParticle)
+        val thrustSound = resourcesVfs["heavy_steam.wav"].readSound().apply { pitch -= 1.0 }
+        val torqueSound = resourcesVfs["heavy_steam.wav"].readSound()
+        playerShip = Ship(shipSprite, thrustParticle, thrustSound, torqueSound)
         playerShip.yVel += earth.getOrbitalVelocity(playerShip)
         installShipControls()
         installGravity(playerShip)
         container.addChild(shipSprite)
+
     }
 
     private fun installShipControls() {
         val ks = KeyState(stage)
         container.addUpdater {
             if (ks[Key.LEFT] || ks[Key.A]) {
+                if (playerShip.torqueSoundChannel.volume < 0.2) playerShip.torqueSoundChannel.volume += 0.1
                 playerShip.thrustLeft()
                 playerShip.frontRightThrust.emitting = true
                 playerShip.backLeftThrust.emitting = true
@@ -69,6 +70,7 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
                 playerShip.backLeftThrust.emitting = false
             }
             if (ks[Key.RIGHT] || ks[Key.D]) {
+                if (playerShip.torqueSoundChannel.volume < 0.2) playerShip.torqueSoundChannel.volume += 0.1
                 playerShip.thrustRight()
                 playerShip.frontLeftThrust.emitting = true
                 playerShip.backRightThrust.emitting = true
@@ -76,10 +78,16 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
                 playerShip.frontLeftThrust.emitting = false
                 playerShip.backRightThrust.emitting = false
             }
+            if (!ks[Key.LEFT] && !ks[Key.A] && !ks[Key.RIGHT] && !ks[Key.D]) {
+                if (playerShip.torqueSoundChannel.volume > 0.0) playerShip.torqueSoundChannel.volume -= 0.1
+            }
+
             if (ks[Key.UP] || ks[Key.W]) {
+                if (playerShip.thrustSoundChannel.volume < 1.0) playerShip.thrustSoundChannel.volume += 0.1
                 playerShip.thrustForward()
                 playerShip.forwardThrust.emitting = true
             } else {
+                if (playerShip.thrustSoundChannel.volume > 0.0) playerShip.thrustSoundChannel.volume -= 0.1
                 playerShip.forwardThrust.emitting = false
             }
         }

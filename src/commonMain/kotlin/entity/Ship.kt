@@ -1,12 +1,14 @@
 package entity
 
+import com.soywiz.klock.TimeSpan
+import com.soywiz.korau.sound.NativeSound
 import com.soywiz.korge.particle.ParticleEmitter
 import com.soywiz.korge.particle.ParticleEmitterView
 import com.soywiz.korge.particle.particleEmitter
 import com.soywiz.korge.view.*
 import com.soywiz.korma.geom.Angle
 
-class Ship(sprite: Sprite, val thrustEmitter: ParticleEmitter) : MassObject(mass = 2000.0, sprite = sprite) {
+class Ship(sprite: Sprite, thrustEmitter: ParticleEmitter, thrustSound: NativeSound, torqueSound: NativeSound) : MassObject(mass = 2000.0, sprite = sprite) {
 	val startingFuel = 3000.0
     var fuel: Double = startingFuel
     private val thrustStrength = 0.1
@@ -17,6 +19,13 @@ class Ship(sprite: Sprite, val thrustEmitter: ParticleEmitter) : MassObject(mass
 	val frontRightThrust: ParticleEmitterView
 	val backLeftThrust: ParticleEmitterView
 	val backRightThrust: ParticleEmitterView
+	val torqueSoundChannel = torqueSound.playForever(TimeSpan(200.0)).apply {
+		volume = 0.0
+	}
+	val thrustSoundChannel = thrustSound.playForever().apply {
+		volume = 0.0
+		pitch = 0.1
+	}
 
 	init {
 		forwardThrust = sprite.particleEmitter(thrustEmitter)
