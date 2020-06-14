@@ -8,7 +8,7 @@ import kotlin.reflect.KProperty
  */
 class Debug(val container: Container) {
     var line = 0
-    fun textLine(text: String) = container.text(text).position(0, line++ * 16).apply { this.filtering = false }
+    fun textLine(text: String) = container.text(text, textSize = 28.0).position(0, line++ * 28).apply { filtering = false }
 
     /**
      * Requires reflection in order to display property value unlike the other [track] functions

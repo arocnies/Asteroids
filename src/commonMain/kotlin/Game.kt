@@ -1,6 +1,7 @@
 import com.soywiz.korev.Key
 import com.soywiz.korev.keys
 import com.soywiz.korge.input.mouse
+import com.soywiz.korge.input.onClick
 import com.soywiz.korge.particle.ParticleEmitter
 import com.soywiz.korge.particle.particleEmitter
 import com.soywiz.korge.particle.readParticle
@@ -20,18 +21,19 @@ import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextInt
 
-class Game(val stage: Stage, val container: Container) {
+class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit) {
     val resources = mutableMapOf<String, Bitmap>()
     val particles = mutableMapOf<String, ParticleEmitter>()
     val asteroids = mutableSetOf<Asteroid>()
     lateinit var playerShip: Ship
     lateinit var earth: Earth
+    var score = 0
 
     suspend fun start() {
         loadResources()
         setupEarth()
         setupPlayerShip()
-        setupAsteroids(5)
+        setupAsteroids(15)
         setupDisplay()
     }
 
@@ -106,7 +108,7 @@ class Game(val stage: Stage, val container: Container) {
             yVel = playerShip.yVel
             rVel = playerShip.rVel
         }
-        bullet.applyForce(0.1, playerShip.sprite.rotation)
+        bullet.applyForce(0.5, playerShip.sprite.rotation)
         installGravity(bullet)
         container.addChildAt(bulletSprite, container.getChildIndex(playerShip.sprite) - 1)
 
@@ -162,7 +164,17 @@ class Game(val stage: Stage, val container: Container) {
 
             container.addChild(nAsteroid.sprite)
             asteroids += nAsteroid
+
+            nAsteroid.sprite.addUpdater {
+                if (nAsteroid.sprite.collidesWith(playerShip.sprite)) {
+                    destroyPlayer()
+                }
+            }
         }
+    }
+
+    private fun destroyPlayer() {
+        onEnd(this)
     }
 
     private fun setupDisplay() {
