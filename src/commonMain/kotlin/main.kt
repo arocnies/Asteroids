@@ -38,7 +38,10 @@ private fun showStartMenu(stage: Stage) {
 
 private suspend fun startNewGame(stage: Stage) {
     stage.setupStarField(SolidRect(width = 1.0, height = 1.0, color = Colors.WHITE), 0.01)
-    val game = Game(stage, stage) { game -> showEndgameScreen(stage, game) }
+    val game = Game(stage, stage) { game ->
+
+        showEndgameScreen(stage, game)
+    }
     game.start()
 }
 
@@ -57,27 +60,33 @@ private fun Container.setupStarField(star: View, density: Double) {
     }
 }
 
+var bestScore = 0
+
 private fun showEndgameScreen(stage: Stage, game: Game) {
     println("Game Over")
-    val screenView = Container().position(stage.width / 2.0, stage.height / 2.0)
+    val score = (game.wave * 100) + (game.asteroidsKilled * 50)
+    if (score > bestScore) bestScore = score
+
+    val screenView = Container()
     val debug = Debug(screenView)
     val title = debug.textLine("[Play Again]")
     debug.textLine("")
-    val scoreCard = debug.textLine(("Score: ${(game.score + game.playerShip.fuel).toInt()}"))
-    val fuelCard = debug.textLine(("Fuel Remaining: ${(game.playerShip.fuel / 30.0).toInt()}"))
-    val asteroidsCard = debug.textLine(("Asteroids Destroyed: ${15 - game.asteroids.count()}"))
+    val scoreCard = debug.textLine(("Score: ${(game.wave * 100) + (game.asteroidsKilled * 50)}"))
+    val asteroidsCard = debug.textLine(("Total Asteroids Destroyed: ${game.asteroidsKilled}"))
+    val waveCard = debug.textLine(("Wave: ${game.wave}"))
+    debug.textLine("")
+    debug.textLine("Best Score: $bestScore")
 
     screenView.addChild(title)
     screenView.addChild(scoreCard)
-    screenView.addChild(fuelCard)
+    screenView.addChild(waveCard)
     screenView.addChild(asteroidsCard)
 
-    screenView.centerOn(stage).addTo(stage)
-    game.asteroids.forEach { it.sprite.removeAllComponents() }
-    game.playerShip.sprite.removeAllComponents()
 
+    screenView.centerOn(stage).addTo(stage)
     title.onClick {
         stage.removeAllComponents()
+        stage.forEachChildren { it.removeAllComponents() }
         stage.removeChildren()
         startNewGame(stage)
     }
