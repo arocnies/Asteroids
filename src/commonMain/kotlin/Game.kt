@@ -32,9 +32,9 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
     var running = true
     var ammo = 10
     var asteroidsKilled = 0
-    var tanksCollected = 0
+    var tanksCollected = mutableSetOf<Asteroid>()
     var score = 0
-        get() = ((wave - 1) * 100) + (asteroidsKilled * 50) + (tanksCollected * 100)
+        get() = ((wave - 1) * 100) + (asteroidsKilled * 50) + (tanksCollected.size * 100)
 
     suspend fun start() {
         loadResources()
@@ -71,6 +71,7 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
         sounds += "shoot" to resourcesVfs["shoot.wav"].readSound()
         sounds += "breaking" to resourcesVfs["breaking.wav"].readSound()
         sounds += "crash" to resourcesVfs["crash.wav"].readSound()
+        sounds += "tank" to resourcesVfs["tank.wav"].readSound()
     }
 
     private suspend fun setupPlayerShip() {
@@ -288,8 +289,11 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
                     if (alpha >= 1.0) phaseIn.cancel()
                     if (nTank.sprite.pos.distanceTo(playerShip.sprite.pos) < tankSprite.width) {
                         nTank.hit()
-                        playerShip.fuel += (playerShip.startingFuel / 3) % playerShip.startingFuel
-                        tanksCollected++
+                        playerShip.fuel += playerShip.startingFuel / 3
+                        if (playerShip.fuel > playerShip.startingFuel) playerShip.fuel = playerShip.startingFuel
+                        tanksCollected.add(nTank)
+                        ammo += 5
+                        sounds["tank"]!!.play()
                     }
                 }
             }

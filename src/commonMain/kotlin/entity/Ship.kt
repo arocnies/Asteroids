@@ -11,7 +11,7 @@ import com.soywiz.korma.geom.Angle
 class Ship(sprite: Sprite, thrustEmitter: ParticleEmitter, thrustSound: NativeSound, torqueSound: NativeSound, val shootSound: NativeSound) : MassObject(mass = 2000.0, sprite = sprite) {
 	val startingFuel = 3000.0
     var fuel: Double = startingFuel
-    private val thrustStrength = 0.5
+    private val thrustStrength = 0.8
 	private val torqueStrength = 5.0
 
 	val forwardThrust: ParticleEmitterView

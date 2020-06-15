@@ -93,14 +93,14 @@ private fun showEndgameScreen(stage: Stage, game: Game) {
 
 
     screenView.centerOn(stage).addTo(stage)
-    title.onKeyDown {
-        if (it.key == Key.SPACE) {
-            stage.removeAllComponents()
-            stage.forEachChildren { it.removeAllComponents() }
-            stage.removeChildren()
-            startNewGame(stage)
-        }
-    }
+//    title.onKeyDown {
+//        if (it.key == Key.SPACE) {
+//            stage.removeAllComponents()
+//            stage.forEachChildren { it.removeAllComponents() }
+//            stage.removeChildren()
+//            startNewGame(stage)
+//        }
+//    }
     title.onClick {
         stage.removeAllComponents()
         stage.forEachChildren { it.removeAllComponents() }
