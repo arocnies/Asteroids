@@ -61,15 +61,15 @@ class Ship(sprite: Sprite, thrustEmitter: ParticleEmitter, thrustSound: NativeSo
 
 	fun thrustLeft() {
 		if (fuel > 0) applyTorque(-torqueStrength)
-		fuel -= 0.1 / torqueStrength
+		fuel -= 1 / torqueStrength
 	}
 	fun thrustRight() {
 		if (fuel > 0) applyTorque(torqueStrength)
-		fuel -= 0.1 / torqueStrength
+		fuel -= 1 / torqueStrength
 	}
 	fun thrustForward() {
 		if (fuel > 0) applyForce(thrustStrength, angle = sprite.rotation)
-		fuel -= 0.1 / thrustStrength
+		fuel -= 1 / thrustStrength
 	}
 	fun fire() {
 		println("FIRE!")

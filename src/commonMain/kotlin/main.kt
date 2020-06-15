@@ -1,8 +1,10 @@
 import com.soywiz.klock.TimeSpan
 import com.soywiz.korau.sound.readMusic
 import com.soywiz.korau.sound.readSound
+import com.soywiz.korev.Key
 import com.soywiz.korge.Korge
 import com.soywiz.korge.input.onClick
+import com.soywiz.korge.input.onKeyDown
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.Colors
 import com.soywiz.korio.file.std.resourcesVfs
@@ -29,6 +31,13 @@ private fun showStartMenu(stage: Stage) {
 
     screenView.centerOn(stage).addTo(stage)
 
+    playButton.onKeyDown {
+        if (it.key == Key.SPACE) {
+            stage.removeAllComponents()
+            stage.removeChildren()
+            startNewGame(stage)
+        }
+    }
     playButton.onClick {
         stage.removeAllComponents()
         stage.removeChildren()
@@ -71,7 +80,7 @@ private fun showEndgameScreen(stage: Stage, game: Game) {
     val debug = Debug(screenView)
     val title = debug.textLine("[Play Again]")
     debug.textLine("")
-    val scoreCard = debug.textLine(("Score: ${(game.wave * 100) + (game.asteroidsKilled * 50)}"))
+    val scoreCard = debug.textLine(("Score: ${game.score}"))
     val waveCard = debug.textLine(("Wave: ${game.wave}"))
     val asteroidsCard = debug.textLine(("Asteroids Destroyed: ${game.asteroidsKilled}"))
     debug.textLine("")
@@ -84,6 +93,14 @@ private fun showEndgameScreen(stage: Stage, game: Game) {
 
 
     screenView.centerOn(stage).addTo(stage)
+    title.onKeyDown {
+        if (it.key == Key.SPACE) {
+            stage.removeAllComponents()
+            stage.forEachChildren { it.removeAllComponents() }
+            stage.removeChildren()
+            startNewGame(stage)
+        }
+    }
     title.onClick {
         stage.removeAllComponents()
         stage.forEachChildren { it.removeAllComponents() }
