@@ -186,6 +186,12 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
                                 }
                             }
                         }
+                if (bullet.sprite.pos.distanceTo(earth.sprite.pos) > (stage?.width ?: 0.0) / 2.0 ||
+                        bullet.sprite.pos.distanceTo(earth.sprite.pos) < earth.sprite.width / 2) {
+                    // Destroy
+                    bulletSprite.removeFromParent()
+                    bulletSprite.removeAllComponents()
+                }
             }
         }
     }
@@ -287,7 +293,7 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
             nTank.sprite.addUpdater {
                 if (running) {
                     if (alpha >= 1.0) phaseIn.cancel()
-                    if (nTank.sprite.pos.distanceTo(playerShip.sprite.pos) < tankSprite.width) {
+                    if (nTank.sprite.pos.distanceTo(playerShip.sprite.pos) < tankSprite.width && !tanksCollected.contains(nTank)) {
                         nTank.hit()
                         playerShip.fuel += playerShip.startingFuel / 3
                         if (playerShip.fuel > playerShip.startingFuel) playerShip.fuel = playerShip.startingFuel
