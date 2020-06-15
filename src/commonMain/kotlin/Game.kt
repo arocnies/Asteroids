@@ -70,13 +70,14 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
     private suspend fun setupPlayerShip() {
         val shipSprite = Sprite(resources["ship"] ?: error("Could not find ship resource"))
                 .anchor(.5, .5)
-                .position(container.width / 3, container.height / 2)
+                .position(earth.sprite.pos.x - earth.sprite.width, earth.sprite.pos.y)
         val thrustParticle = particles["thrust"] ?: error("Could not find thrust particle")
         val thrustSound = resourcesVfs["heavy_steam.wav"].readSound().apply { pitch -= 1.0 }
         val torqueSound = resourcesVfs["heavy_steam.wav"].readSound()
         val shootSound = resourcesVfs["shoot.wav"].readSound()
         playerShip = Ship(shipSprite, thrustParticle, thrustSound, torqueSound, shootSound)
         playerShip.yVel += earth.getOrbitalVelocity(playerShip)
+        playerShip.rVel = -0.05
         installShipControls()
         installGravity(playerShip)
         container.addChild(shipSprite)

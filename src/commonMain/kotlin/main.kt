@@ -72,8 +72,8 @@ private fun showEndgameScreen(stage: Stage, game: Game) {
     val title = debug.textLine("[Play Again]")
     debug.textLine("")
     val scoreCard = debug.textLine(("Score: ${(game.wave * 100) + (game.asteroidsKilled * 50)}"))
-    val asteroidsCard = debug.textLine(("Total Asteroids Destroyed: ${game.asteroidsKilled}"))
     val waveCard = debug.textLine(("Wave: ${game.wave}"))
+    val asteroidsCard = debug.textLine(("Asteroids Destroyed: ${game.asteroidsKilled}"))
     debug.textLine("")
     debug.textLine("Best Score: $bestScore")
 
