@@ -186,8 +186,7 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
                                 }
                             }
                         }
-                if (bullet.sprite.pos.distanceTo(earth.sprite.pos) > (stage?.width ?: 0.0) / 2.0 ||
-                        bullet.sprite.pos.distanceTo(earth.sprite.pos) < earth.sprite.width / 2) {
+                if (bullet.sprite.pos.distanceTo(earth.sprite.pos) > (stage?.width ?: 0.0) / 2.0) {
                     // Destroy
                     bulletSprite.removeFromParent()
                     bulletSprite.removeAllComponents()

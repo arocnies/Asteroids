@@ -11,7 +11,7 @@ import com.soywiz.korio.file.std.resourcesVfs
 import debug.Debug
 import kotlin.random.Random
 
-suspend fun main() = Korge(width = 1600, height = 900, bgcolor = Colors["#010a19"], fullscreen = true) {
+suspend fun main() = Korge(width = 1600, height = 900, bgcolor = Colors["#010a19"], fullscreen = true, title = "Asteroids++") {
     val backgroundMusic = resourcesVfs["space-ambient.wav"].readSound()
     val channel = backgroundMusic.playForever()
     showStartMenu(this)
