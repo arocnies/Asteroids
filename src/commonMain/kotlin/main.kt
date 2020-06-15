@@ -24,7 +24,7 @@ private fun showStartMenu(stage: Stage) {
     val title = debug.textLine("Asteroids ++")
     debug.textLine("")
     debug.textLine("")
-    val playButton = debug.textLine("[Play]")
+    val playButton = debug.textLine("[ENTER]")
 
     screenView.addChild(title)
     screenView.addChild(playButton)
@@ -32,7 +32,7 @@ private fun showStartMenu(stage: Stage) {
     screenView.centerOn(stage).addTo(stage)
 
     playButton.onKeyDown {
-        if (it.key == Key.SPACE) {
+        if (it.key == Key.ENTER) {
             stage.removeAllComponents()
             stage.removeChildren()
             startNewGame(stage)
@@ -80,27 +80,22 @@ private fun showEndgameScreen(stage: Stage, game: Game) {
     val debug = Debug(screenView)
     val title = debug.textLine("[Play Again]")
     debug.textLine("")
-    val scoreCard = debug.textLine(("Score: ${game.score}"))
-    val waveCard = debug.textLine(("Wave: ${game.wave}"))
-    val asteroidsCard = debug.textLine(("Asteroids Destroyed: ${game.asteroidsKilled}"))
+    debug.textLine(("Score: ${game.score}"))
+    debug.textLine(("Wave: ${game.wave}"))
+    debug.textLine(("Asteroids destroyed: ${game.asteroidsKilled}"))
+    debug.textLine(("Tanks collected: ${game.tanksCollected.size}"))
     debug.textLine("")
     debug.textLine("Best Score: $bestScore")
 
-    screenView.addChild(title)
-    screenView.addChild(scoreCard)
-    screenView.addChild(waveCard)
-    screenView.addChild(asteroidsCard)
-
-
     screenView.centerOn(stage).addTo(stage)
-//    title.onKeyDown {
-//        if (it.key == Key.SPACE) {
-//            stage.removeAllComponents()
-//            stage.forEachChildren { it.removeAllComponents() }
-//            stage.removeChildren()
-//            startNewGame(stage)
-//        }
-//    }
+    title.onKeyDown {
+        if (it.key == Key.ENTER) {
+            stage.removeAllComponents()
+            stage.forEachChildren { it.removeAllComponents() }
+            stage.removeChildren()
+            startNewGame(stage)
+        }
+    }
     title.onClick {
         stage.removeAllComponents()
         stage.forEachChildren { it.removeAllComponents() }
