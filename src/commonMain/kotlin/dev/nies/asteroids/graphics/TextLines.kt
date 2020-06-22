@@ -1,4 +1,4 @@
-package debug
+package dev.nies.asteroids.graphics
 
 import com.soywiz.korge.view.*
 import kotlin.reflect.KProperty

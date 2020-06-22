@@ -8,7 +8,7 @@ import com.soywiz.korge.particle.particleEmitter
 import com.soywiz.korge.view.*
 import com.soywiz.korma.geom.Angle
 
-class Ship(sprite: Sprite, thrustEmitter: ParticleEmitter, thrustSound: NativeSound, torqueSound: NativeSound, val shootSound: NativeSound) : MassObject(mass = 2000.0, sprite = sprite) {
+class Ship(sprite: Sprite, thrustEmitter: ParticleEmitter, thrustSound: NativeSound, torqueSound: NativeSound, val shootSound: NativeSound) {
 	val startingFuel = 3000.0
     var fuel: Double = startingFuel
     private val thrustStrength = 0.8
@@ -60,15 +60,15 @@ class Ship(sprite: Sprite, thrustEmitter: ParticleEmitter, thrustSound: NativeSo
 	}
 
 	fun thrustLeft() {
-		if (fuel > 0) applyTorque(-torqueStrength)
+//		if (fuel > 0) applyTorque(-torqueStrength)
 		fuel -= 1 / torqueStrength
 	}
 	fun thrustRight() {
-		if (fuel > 0) applyTorque(torqueStrength)
+//		if (fuel > 0) applyTorque(torqueStrength)
 		fuel -= 1 / torqueStrength
 	}
 	fun thrustForward() {
-		if (fuel > 0) applyForce(thrustStrength, angle = sprite.rotation)
+//		if (fuel > 0) applyForce(thrustStrength, angle = sprite.rotation)
 		fuel -= 1 / thrustStrength
 	}
 	fun fire() {

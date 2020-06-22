@@ -9,7 +9,7 @@ import com.soywiz.korge.view.SolidRect
 import com.soywiz.korge.view.centerOn
 import com.soywiz.korge.view.container
 import com.soywiz.korim.color.Colors
-import debug.TextLines
+import dev.nies.asteroids.graphics.TextLines
 
 class StartMenu : Scene() {
     override suspend fun Container.sceneInit() {
