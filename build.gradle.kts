@@ -10,12 +10,12 @@ buildscript {
 		mavenCentral()
 	}
 	dependencies {
-		classpath("com.soywiz.korlibs.korge.plugins:korge-gradle-plugin:1.13.2.2")
+		classpath("com.soywiz.korlibs.korge.plugins:korge-gradle-plugin:1.13.3.0")
 	}
 }
 
 apply<KorgeGradlePlugin>()
 
 korge {
-	id = "dev.nies.game.asteroids"
+	id = "dev.nies.asteroids"
 }

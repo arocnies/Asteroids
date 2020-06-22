@@ -6,7 +6,7 @@ import kotlin.reflect.KProperty
 /**
  * Updates text in the provided [container] on each frame.
  */
-class Debug(val container: Container) {
+class TextLines(val container: Container) {
     var line = 0
     fun textLine(text: String) = container.text(text, textSize = 28.0).position(14, 14 + (line++ * 42)).apply { filtering = false }
 

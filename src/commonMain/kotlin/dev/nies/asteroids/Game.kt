@@ -1,3 +1,6 @@
+package dev.nies.asteroids
+
+import KeyState
 import com.soywiz.klock.TimeSpan
 import com.soywiz.korau.sound.NativeSound
 import com.soywiz.korau.sound.readSound
@@ -11,7 +14,7 @@ import com.soywiz.korim.format.readBitmap
 import com.soywiz.korio.async.launchImmediately
 import com.soywiz.korio.file.std.resourcesVfs
 import com.soywiz.korma.geom.*
-import debug.Debug
+import debug.TextLines
 import entity.Asteroid
 import entity.Earth
 import entity.MassObject
@@ -314,7 +317,7 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
     }
 
     private fun setupDisplay() {
-        val debug = Debug(container)
+        val debug = TextLines(container)
         debug.track { "Wave: ${wave}" }
         debug.track { "Next Wave in: ${nextWaveCountdown}" }
         debug.track { "Score: ${score}" }
