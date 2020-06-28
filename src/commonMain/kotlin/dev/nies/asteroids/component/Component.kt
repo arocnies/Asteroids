@@ -1,13 +1,13 @@
-@file:Suppress("OverridingDeprecatedMember")
-
 package dev.nies.asteroids.component
 
 import com.soywiz.korev.Key
 import com.soywiz.korge.component.Component
 import com.soywiz.korge.component.UpdateComponent
 import com.soywiz.korge.component.UpdateComponentWithViews
+import com.soywiz.korge.view.Circle
 import com.soywiz.korge.view.View
 import com.soywiz.korge.view.Views
+import com.soywiz.korge.view.addTo
 import com.soywiz.korma.geom.Angle
 import com.soywiz.korma.geom.Point
 import com.soywiz.korma.geom.cos
@@ -18,8 +18,11 @@ import kotlin.reflect.KProperty
 fun <R, T> View.propDelegate(default: T): ReadWriteProperty<R, T> {
     return object : ReadWriteProperty<R, T> {
         override fun getValue(thisRef: R, property: KProperty<*>): T {
-            @Suppress("UNCHECKED_CAST")
-            return this@propDelegate.props[property.name] as? T ?: default
+            val value = this@propDelegate.props[property.name] as? T
+            return if (value == null) {
+                setValue(thisRef, property, default)
+                default
+            } else value
         }
 
         override fun setValue(thisRef: R, property: KProperty<*>, value: T) {
@@ -68,7 +71,7 @@ fun <T : View> T.withVelocity(xVel: Double, yVel: Double, rVel: Double): T {
     return this
 }
 
-class Mass(override val view: View, value: Int = 0) : Component {
+class Mass(override val view: View, value: Int = 1) : Component {
     var massValue: Int by view.propDelegate(value)
 }
 
@@ -79,8 +82,7 @@ fun <T : View> T.withMass(value: Int): T {
 }
 
 class Force(override val view: View) : Component {
-    @Suppress("DEPRECATION")
-    val mass = view.getOrCreateComponent { Mass(it) }
+    val mass = view.getOrCreateComponentOther { Mass(it) }
     val velocity = view.getOrCreateComponentUpdate { Velocity(it) }
 
     fun applyForce(magnitude: Double, angle: Angle) {

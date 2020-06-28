@@ -4,6 +4,7 @@ import com.soywiz.korge.component.UpdateComponent
 import com.soywiz.korge.view.Container
 import com.soywiz.korge.view.View
 import com.soywiz.korge.view.addTo
+import com.soywiz.korge.view.hasAncestor
 import com.soywiz.korma.geom.*
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -16,55 +17,65 @@ import kotlin.math.sqrt
 class GravityField : Container() {
     private val gravityAlgorithm = GravityAlgorithm()
 
-    fun <T : View> T.withGravitation(mass: Int) : T {
+    fun <T : View> T.withGravitation(mass: Int): T {
         val gravComponent = Gravitation(this, mass)
         addComponent(gravComponent)
         return this
     }
 
-    fun View.withCircularOrbit(target: View) {
-        val gravitation = getOrCreateComponentOther { Gravitation(this) }
-        val targetGravitation = target.addTo(this@GravityField).getOrCreateComponentOther { Gravitation(target) }
-        if (gravitation.mass.massValue != 0 && targetGravitation.mass.massValue != 0) {
-            with(gravityAlgorithm) {
-                gravitation.force.applyForce(gravitation.mass.getCircularVelocity(target = targetGravitation))
-            }
+    fun <T : View> T.withCircularOrbit(target: View, mass: Int): T {
+        require(target.hasAncestor(this@GravityField)) { "Cannot orbit around target not in the same gravity field" }
+
+        val gravitation = getOrCreateComponentOther { Gravitation(this, mass) }
+        val targetGravitation = target.getOrCreateComponentOther { Gravitation(target, mass) }
+        with(gravityAlgorithm) {
+            gravitation.force.applyForce(gravitation.mass.getCircularVelocity(target = targetGravitation))
         }
+        return this
     }
 
-    @Suppress("DEPRECATION", "OverridingDeprecatedMember")
-    inner class Gravitation(override val view: View, mass: Int = 0) : UpdateComponent {
-        val mass = view.getOrCreateComponent { Mass(it, mass) }
-        val force = view.getOrCreateComponent { Force(it) }
+    inner class Gravitation(override val view: View, mass: Int) : UpdateComponent {
+        val mass = view.getOrCreateComponentOther { Mass(it, mass) }
+        val force = view.getOrCreateComponentOther { Force(it) }
 
         override fun update(ms: Double) = with(gravityAlgorithm) {
             // loop through all sources and apply gravity
-            val totalGravForce: Point = this@GravityField.children
-                    .asSequence()
-                    .filterNot { it == view }
-                    .map { childView -> childView.getOrCreateComponentOther { Mass(it) } }
-                    .filterNot { it.massValue == 0 }
-                    .map { this@Gravitation.mass.getGravForce(it) }
-                    .reduce { acc, point -> acc + point }
+            val totalGravForce: Point = Point()
+            this@GravityField.forEachChildren { childView ->
+                if (view != childView) {
+                    val childMass = childView.getOrCreateComponentOther { Mass(it) }
+                    val childGrav = this@Gravitation.mass.getGravForce(childMass)
+                    totalGravForce += childGrav
+                }
+            }
+            // Alternative for not using "view.forEachChildren"
+            // Switched to test performance difference since "view.children" is said to be slow but not sure why.
+//            this@GravityField.children
+//                    .asSequence()
+//                    .filterNot { view == it }
+//                    .map { childView -> childView.getOrCreateComponentOther { Mass(it) } }
+//                    .filterNot { it.massValue == 0 }
+//                    .map { this@Gravitation.mass.getGravForce(it) }
+//                    .reduce { acc, point -> acc + point }
             force.applyForce(totalGravForce * ms)
         }
     }
+}
 
-    inner class GravityAlgorithm(private val gravityConstant: Double = 0.0001) {
+private class GravityAlgorithm(private val gravityConstant: Double = 0.00001) {
 
-        fun Mass.getGravForce(other: Mass): Point {
-            val distanceToOther: Double = view.pos.distanceTo(other.view.pos) + 1.0
-            val magnitude = gravityConstant * ((this.massValue * other.massValue) / distanceToOther.pow(2))
-            val angleToOther: Angle = view.globalPos().angleTo(other.view.globalPos())
-            return vectorToPoint(magnitude, angleToOther)
-        }
+    fun Mass.getGravForce(other: Mass): Point {
+        val distanceToOther: Double = view.pos.distanceTo(other.view.pos)
+        val magnitude = gravityConstant * ((this.massValue * other.massValue) / distanceToOther.pow(2))
+        val angleToOther: Angle = view.pos.angleTo(other.view.pos)
+        return vectorToPoint(magnitude, angleToOther)
+    }
 
-        fun Mass.getCircularVelocity(target: GravityField.Gravitation): Point {
-            val magnitude = sqrt((gravityConstant * massValue) / target.view.globalPos().distanceTo(view.globalPos()))
-            val angleToTarget = target.view.globalPos().angleTo(view.globalPos())
-            val orbitAngle = angleToTarget.plus(Angle.fromDegrees(-90)) // FIXME: Test with tangent
-            return vectorToPoint(magnitude, orbitAngle)
-        }
+    fun Mass.getCircularVelocity(target: GravityField.Gravitation): Point {
+        val magnitude = sqrt((gravityConstant * massValue) / target.view.globalPos().distanceTo(view.globalPos()))
+        val angleToTarget = target.view.globalPos().angleTo(view.globalPos())
+        val orbitAngle = angleToTarget.plus(Angle.fromDegrees(-90)) // FIXME: Test with tangent
+        return vectorToPoint(magnitude, orbitAngle)
     }
 }
 
