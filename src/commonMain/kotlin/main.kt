@@ -11,7 +11,7 @@ import com.soywiz.korio.file.std.resourcesVfs
 import debug.Debug
 import kotlin.random.Random
 
-suspend fun main() = Korge(width = 1600, height = 900, bgcolor = Colors["#010a19"], fullscreen = true, title = "Asteroids++") {
+suspend fun main() = Korge(virtualWidth = 1600, virtualHeight = 900, bgcolor = Colors["#010a19"], fullscreen = false, title = "Asteroids++") {
     val backgroundMusic = resourcesVfs["space-ambient.wav"].readSound()
     val channel = backgroundMusic.playForever()
     showStartMenu(this)
@@ -19,7 +19,7 @@ suspend fun main() = Korge(width = 1600, height = 900, bgcolor = Colors["#010a19
 
 private fun showStartMenu(stage: Stage) {
     stage.setupStarField(SolidRect(width = 1.0, height = 1.0, color = Colors.WHITE), 0.01)
-    val screenView = Container().position(stage.width / 2.0, stage.height / 2.0)
+    val screenView = Container()
     val debug = Debug(screenView)
     val title = debug.textLine("Asteroids ++")
     debug.textLine("")
@@ -29,7 +29,7 @@ private fun showStartMenu(stage: Stage) {
     screenView.addChild(title)
     screenView.addChild(playButton)
 
-    screenView.centerOn(stage).addTo(stage)
+    screenView.position((stage.unscaledWidth / 2.0) - screenView.width, (stage.unscaledHeight / 2.0) - screenView.height).addTo(stage.containerRoot)
 
     playButton.onKeyDown {
         if (it.key == Key.ENTER) {
@@ -58,12 +58,12 @@ private suspend fun startNewGame(stage: Stage) {
  * [density] value of 1.0 means a star per pixel randomly placed in the container.
  */
 private fun Container.setupStarField(star: View, density: Double) {
-    val numberOfStars = (this.width * this.height * density).toInt()
+    val numberOfStars = (this.unscaledWidth * this.unscaledHeight * density).toInt()
     repeat(numberOfStars) {
         this.addChild(
                 star.clone().position(
-                        Random.nextInt((width + 1).toInt()),
-                        Random.nextInt((height + 1).toInt())
+                        Random.nextInt((unscaledWidth + 1).toInt()),
+                        Random.nextInt((unscaledHeight + 1).toInt())
                 ).alpha(Random.nextDouble())
         )
     }
@@ -87,7 +87,7 @@ private fun showEndgameScreen(stage: Stage, game: Game) {
     debug.textLine("")
     debug.textLine("Best Score: $bestScore")
 
-    screenView.centerOn(stage).addTo(stage)
+    screenView.position((stage.unscaledWidth / 2.0) - screenView.width, (stage.unscaledHeight / 2.0) - screenView.height).addTo(stage.containerRoot)
     title.onKeyDown {
         if (it.key == Key.ENTER) {
             stage.removeAllComponents()

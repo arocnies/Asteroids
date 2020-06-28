@@ -90,7 +90,7 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
         container.addChild(shipSprite)
         earth.sprite.addUpdater {
             if (running) {
-                if (playerShip.sprite.pos.distanceTo(earth.sprite.pos) > (stage?.width ?: 0.0) / 2.0 ||
+                if (playerShip.sprite.pos.distanceTo(earth.sprite.pos) > (stage?.unscaledWidth ?: 0.0) / 2.0 ||
                         playerShip.sprite.pos.distanceTo(earth.sprite.pos) < earth.sprite.width / 2) {
                     destroyPlayer()
                 }
@@ -186,7 +186,7 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
                                 }
                             }
                         }
-                if (bullet.sprite.pos.distanceTo(earth.sprite.pos) > (stage?.width ?: 0.0) / 2.0) {
+                if (bullet.sprite.pos.distanceTo(earth.sprite.pos) > (stage?.unscaledWidth ?: 0.0) / 2.0) {
                     // Destroy
                     bulletSprite.removeFromParent()
                     bulletSprite.removeAllComponents()
@@ -198,7 +198,7 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
     private fun setupEarth() {
         val earthSprite = Sprite(resources["earth"] ?: error("Could not find earth resource"))
                 .anchor(0.5, 0.5)
-                .position(container.width / 2, container.height / 2)
+                .position(container.unscaledWidth / 2, container.unscaledHeight / 2)
         earth = Earth(earthSprite)
         container.addChild(earthSprite)
     }
@@ -218,9 +218,9 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
         // TODO: Refactor into asteroid field
         val asteroidPos = sequence<Point> {
             while (true) {
-                val pos = Point(Random.nextInt(stage.width.toInt()), Random.nextInt(stage.height.toInt()))
+                val pos = Point(Random.nextInt(stage.unscaledWidth.toInt()), Random.nextInt(stage.unscaledHeight.toInt()))
                 if (pos.distanceTo(earth.sprite.pos) > earth.sprite.width &&
-                        pos.distanceTo(earth.sprite.pos) < stage.width / 2 &&
+                        pos.distanceTo(earth.sprite.pos) < stage.unscaledWidth / 2 &&
                         pos.distanceTo(playerShip.sprite.pos) > playerShip.sprite.width) yield(pos)
             }
         }.iterator()
@@ -260,9 +260,9 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
     fun setupFuelTanks(n: Int) {
         val tankPos = sequence<Point> {
             while (true) {
-                val pos = Point(Random.nextInt(stage.width.toInt()), Random.nextInt(stage.height.toInt()))
+                val pos = Point(Random.nextInt(stage.unscaledWidth.toInt()), Random.nextInt(stage.unscaledHeight.toInt()))
                 if (pos.distanceTo(earth.sprite.pos) > earth.sprite.width &&
-                        pos.distanceTo(earth.sprite.pos) < stage.width / 2 &&
+                        pos.distanceTo(earth.sprite.pos) < stage.unscaledWidth / 2 &&
                         pos.distanceTo(playerShip.sprite.pos) > playerShip.sprite.width) yield(pos)
             }
         }.iterator()
