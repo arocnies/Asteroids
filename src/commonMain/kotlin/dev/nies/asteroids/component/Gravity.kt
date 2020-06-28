@@ -27,9 +27,9 @@ class GravityField : Container() {
         require(target.hasAncestor(this@GravityField)) { "Cannot orbit around target not in the same gravity field" }
 
         val gravitation = getOrCreateComponentOther { Gravitation(this, mass) }
-        val targetGravitation = target.getOrCreateComponentOther { Gravitation(target, mass) }
+        val targetMass = target.getOrCreateComponentOther { Mass(it) }
         with(gravityAlgorithm) {
-            gravitation.force.applyForce(gravitation.mass.getCircularVelocity(target = targetGravitation))
+            gravitation.force.applyForce(gravitation.mass.getCircularVelocity(target = targetMass))
         }
         return this
     }
@@ -71,7 +71,7 @@ private class GravityAlgorithm(private val gravityConstant: Double = 0.00001) {
         return vectorToPoint(magnitude, angleToOther)
     }
 
-    fun Mass.getCircularVelocity(target: GravityField.Gravitation): Point {
+    fun Mass.getCircularVelocity(target: Mass): Point {
         val magnitude = sqrt((gravityConstant * massValue) / target.view.globalPos().distanceTo(view.globalPos()))
         val angleToTarget = target.view.globalPos().angleTo(view.globalPos())
         val orbitAngle = angleToTarget.plus(Angle.fromDegrees(-90)) // FIXME: Test with tangent

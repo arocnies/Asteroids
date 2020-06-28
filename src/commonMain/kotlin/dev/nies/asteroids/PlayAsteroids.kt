@@ -1,5 +1,6 @@
 package dev.nies.asteroids
 
+import com.soywiz.klock.seconds
 import com.soywiz.korau.sound.NativeSound
 import com.soywiz.korau.sound.readSound
 import com.soywiz.korev.Key
@@ -7,6 +8,8 @@ import com.soywiz.korge.input.onClick
 import com.soywiz.korge.particle.ParticleEmitter
 import com.soywiz.korge.particle.readParticle
 import com.soywiz.korge.scene.Scene
+import com.soywiz.korge.tween.get
+import com.soywiz.korge.tween.tween
 import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.Bitmap
 import com.soywiz.korim.color.Colors
@@ -15,10 +18,12 @@ import com.soywiz.korio.async.launch
 import com.soywiz.korio.async.launchImmediately
 import com.soywiz.korio.file.std.resourcesVfs
 import com.soywiz.korma.geom.Anchor
+import com.soywiz.korma.geom.Point
 import dev.nies.asteroids.component.*
 import entity.Asteroid
 import entity.Earth
 import entity.Ship
+import kotlin.random.Random
 
 class PlayAsteroids : Scene() {
     private val gravityField = GravityField()
@@ -47,7 +52,7 @@ class PlayAsteroids : Scene() {
         sceneContainer.addChild(gravityField)
         setupEarth()
         setupPlayerShip()
-//        setupAsteroids(15)
+        setupAsteroids(15)
 //        setupDisplay()
     }
 
@@ -91,7 +96,7 @@ class PlayAsteroids : Scene() {
                     .withGravitation(mass = 2000)
                     .withVelocity(0.0, 0.05, 0.0)
         }
-        sceneContainer.addChild(playerShip) // FIXME: For some reason the ship is disappearing
+        sceneContainer.addChild(playerShip)
 
         playerShip.addUpdater {
             if (
@@ -101,6 +106,41 @@ class PlayAsteroids : Scene() {
                     playerShip.y > sceneContainer.height ||
                     playerShip.pos.distanceTo(earth.pos) < earth.width / 2
             ) launch { playerShip.destroy() }
+        }
+    }
+
+    private fun setupAsteroids(numOfAsteroids: Int) {
+        // TODO: Refactor into asteroid field
+        val asteroidPos = sequence<Point> {
+            while (true) {
+                val pos = Point(Random.nextInt(sceneContainer.width.toInt()), Random.nextInt(sceneContainer.height.toInt()))
+                if (pos.distanceTo(earth.pos) > earth.width &&
+                        pos.distanceTo(earth.pos) < sceneContainer.width / 2 &&
+                        pos.distanceTo(playerShip.pos) > playerShip.width) yield(pos)
+            }
+        }.iterator()
+        repeat(numOfAsteroids) {
+            val asteroidSprite = with(gravityField) {
+                Sprite(resources["asteroid_${Random.nextInt(3)}"]!!)
+                        .position(asteroidPos.next())
+                        .anchor(0.5, 0.5)
+                        .alpha(0.0)
+                        .withGravitation(2000)
+                        .withCircularOrbit(earth, 2000)
+            }
+            launch {
+                asteroidSprite.tween(asteroidSprite::alpha[1.0], time = 0.5.seconds)
+            }
+
+            val velocity = asteroidSprite.getOrCreateComponentOther { Velocity(it) }
+            velocity.rVel = (Random.nextDouble() - Random.nextDouble()) / 4
+            sceneContainer.addChild(asteroidSprite)
+
+            asteroidSprite.addUpdater {
+                if (asteroidSprite.pos.distanceTo(playerShip.pos) < asteroidSprite.width / 2) {
+                    launch { playerShip.destroy() }
+                }
+            }
         }
     }
 }
