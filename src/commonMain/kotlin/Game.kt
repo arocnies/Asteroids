@@ -1,21 +1,24 @@
 import com.soywiz.klock.TimeSpan
-import com.soywiz.korau.sound.NativeSound
+import com.soywiz.korau.sound.Sound
 import com.soywiz.korau.sound.readSound
 import com.soywiz.korev.Key
 import com.soywiz.korge.input.keys
 import com.soywiz.korge.particle.ParticleEmitter
-import com.soywiz.korge.particle.readParticle
+import com.soywiz.korge.particle.readParticleEmitter
 import com.soywiz.korge.view.*
 import com.soywiz.korim.bitmap.Bitmap
 import com.soywiz.korim.format.readBitmap
+import com.soywiz.korio.async.launch
 import com.soywiz.korio.async.launchImmediately
 import com.soywiz.korio.file.std.resourcesVfs
+import com.soywiz.korio.lang.cancel
 import com.soywiz.korma.geom.*
 import debug.Debug
 import entity.Asteroid
 import entity.Earth
 import entity.MassObject
 import entity.Ship
+import kotlinx.coroutines.GlobalScope
 import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -25,7 +28,7 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
     var wave = 1
     val resources = mutableMapOf<String, Bitmap>()
     val particles = mutableMapOf<String, ParticleEmitter>()
-    val sounds = mutableMapOf<String, NativeSound>()
+    val sounds = mutableMapOf<String, Sound>()
     val asteroids = mutableSetOf<Asteroid>()
     lateinit var playerShip: Ship
     lateinit var earth: Earth
@@ -40,7 +43,8 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
         loadResources()
         setupEarth()
         setupPlayerShip()
-        setupAsteroids(15)
+//        setupAsteroids(15)
+        setupAsteroids(0)
         setupDisplay()
 
         stage.addFixedUpdater(TimeSpan(1000.0)) {
@@ -65,7 +69,7 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
         resources += "asteroid_1" to resourcesVfs["asteroid_1.png"].readBitmap()
         resources += "asteroid_2" to resourcesVfs["asteroid_2.png"].readBitmap()
         resources += "tank" to resourcesVfs["tank.png"].readBitmap()
-        particles += "thrust" to resourcesVfs["particle/thurst/particle.pex"].readParticle()
+        particles += "thrust" to resourcesVfs["particle/thurst/particle.pex"].readParticleEmitter()
         sounds += "thrust" to resourcesVfs["heavy_steam.wav"].readSound()
         sounds += "torque" to resourcesVfs["heavy_steam.wav"].readSound()
         sounds += "shoot" to resourcesVfs["shoot.wav"].readSound()
@@ -75,9 +79,11 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
     }
 
     private suspend fun setupPlayerShip() {
-        val shipSprite = Sprite(resources["ship"] ?: error("Could not find ship resource"))
-                .anchor(.5, .5)
-                .position(earth.sprite.pos.x - earth.sprite.width * 2, earth.sprite.pos.y)
+        val shipSprite: Container = Container()
+            .position(earth.sprite.pos.x - earth.sprite.width * 2, earth.sprite.pos.y)
+        shipSprite.sprite(resources["ship"] ?: error("Could not find ship resource")) {
+            anchor(.5, .5)
+        }
         val thrustParticle = particles["thrust"] ?: error("Could not find thrust particle")
         val thrustSound = sounds["thrust"]!!.apply { pitch -= 1.0 }
         val torqueSound = sounds["torque"]!!
@@ -90,7 +96,7 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
         container.addChild(shipSprite)
         earth.sprite.addUpdater {
             if (running) {
-                if (playerShip.sprite.pos.distanceTo(earth.sprite.pos) > (stage?.unscaledWidth ?: 0.0) / 2.0 ||
+                if (playerShip.sprite.pos.distanceTo(earth.sprite.pos) > (stage?.unscaledWidth ?: Double.MAX_VALUE) / 1.5 ||
                         playerShip.sprite.pos.distanceTo(earth.sprite.pos) < earth.sprite.width / 2) {
                     destroyPlayer()
                 }
@@ -99,11 +105,11 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
     }
 
     private suspend fun installShipControls() {
-        val ks = KeyState(stage)
+        val ks = stage.input.keys
         earth.sprite.addUpdater {
             if (running) {
                 if (ks[Key.LEFT] || ks[Key.A] && playerShip.fuel > 0) {
-                    if (playerShip.torqueSoundChannel.volume < 0.2) playerShip.torqueSoundChannel.volume += 0.1
+                    if (playerShip.torqueVolume < 0.2) playerShip.torqueVolume += 0.1
                     playerShip.thrustLeft()
                     playerShip.frontRightThrust.emitting = true
                     playerShip.backLeftThrust.emitting = true
@@ -112,7 +118,7 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
                     playerShip.backLeftThrust.emitting = false
                 }
                 if (ks[Key.RIGHT] || ks[Key.D] && playerShip.fuel > 0) {
-                    if (playerShip.torqueSoundChannel.volume < 0.2) playerShip.torqueSoundChannel.volume += 0.1
+                    if (playerShip.torqueVolume < 0.2) playerShip.torqueVolume += 0.1
                     playerShip.thrustRight()
                     playerShip.frontLeftThrust.emitting = true
                     playerShip.backRightThrust.emitting = true
@@ -121,15 +127,15 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
                     playerShip.backRightThrust.emitting = false
                 }
                 if (!ks[Key.LEFT] && !ks[Key.A] && !ks[Key.RIGHT] && !ks[Key.D]) {
-                    if (playerShip.torqueSoundChannel.volume > 0.0) playerShip.torqueSoundChannel.volume -= 0.1
+                    if (playerShip.torqueVolume > 0.0) playerShip.torqueVolume -= 0.1
                 }
 
                 if (ks[Key.UP] || ks[Key.W] && playerShip.fuel > 0) {
-                    if (playerShip.thrustSoundChannel.volume < 1.0) playerShip.thrustSoundChannel.volume += 0.1
+                    if (playerShip.thrustVolume < 1.0) playerShip.thrustVolume += 0.1
                     playerShip.thrustForward()
                     playerShip.forwardThrust.emitting = true
                 } else {
-                    if (playerShip.thrustSoundChannel.volume > 0.0) playerShip.thrustSoundChannel.volume -= 0.1
+                    if (playerShip.thrustVolume > 0.0) playerShip.thrustVolume -= 0.1
                     playerShip.forwardThrust.emitting = false
                 }
             }
@@ -173,7 +179,9 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
             if (running) {
                 asteroids.filter { bullet.sprite.collidesWith(it.sprite) }
                         .forEach {
-                            breakSound.play()
+                            GlobalScope.launch {
+                                breakSound.play()
+                            }
                             it.hit()
                             asteroids -= it
                             asteroidsKilled++
@@ -298,7 +306,9 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
                         if (playerShip.fuel > playerShip.startingFuel) playerShip.fuel = playerShip.startingFuel
                         tanksCollected.add(nTank)
                         ammo += 5
-                        sounds["tank"]!!.play()
+                        GlobalScope.launch {
+                            sounds["tank"]!!.play()
+                        }
                     }
                 }
             }
@@ -306,10 +316,12 @@ class Game(val stage: Stage, val container: Container, val onEnd: (Game) -> Unit
     }
 
     private fun destroyPlayer() {
-        sounds["crash"]!!.play()
+        GlobalScope.launch {
+            sounds["crash"]!!.play()
+        }
         running = false
-        playerShip.torqueSoundChannel.volume = 0.0
-        playerShip.thrustSoundChannel.volume = 0.0
+        playerShip.torqueVolume = 0.0
+        playerShip.thrustVolume = 0.0
         onEnd(this)
     }
 

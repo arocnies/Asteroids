@@ -1,10 +1,7 @@
 package entity
 
 import com.soywiz.korge.view.Sprite
-import com.soywiz.korma.geom.Angle
-import com.soywiz.korma.geom.Point
-import com.soywiz.korma.geom.cos
-import com.soywiz.korma.geom.sin
+import com.soywiz.korma.geom.*
 import kotlin.math.pow
 import kotlin.math.sqrt
 

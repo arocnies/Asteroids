@@ -1,6 +1,7 @@
 package debug
 
 import com.soywiz.korge.view.*
+import com.soywiz.korge.view.filter.filter
 import kotlin.reflect.KProperty
 
 /**
@@ -8,7 +9,7 @@ import kotlin.reflect.KProperty
  */
 class Debug(val container: Container) {
     var line = 0
-    fun textLine(text: String) = container.text(text, textSize = 28.0).position(14, 14 + (line++ * 42)).apply { filtering = false }
+    fun textLine(text: String) = container.text(text, textSize = 28.0).position(14, 14 + (line++ * 42)).apply { filter = null }
 
     /**
      * Requires reflection in order to display property value unlike the other [track] functions

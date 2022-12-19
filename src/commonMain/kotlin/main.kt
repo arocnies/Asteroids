@@ -3,8 +3,8 @@ import com.soywiz.korau.sound.readMusic
 import com.soywiz.korau.sound.readSound
 import com.soywiz.korev.Key
 import com.soywiz.korge.Korge
+import com.soywiz.korge.input.keys
 import com.soywiz.korge.input.onClick
-import com.soywiz.korge.input.onKeyDown
 import com.soywiz.korge.view.*
 import com.soywiz.korim.color.Colors
 import com.soywiz.korio.file.std.resourcesVfs
@@ -31,7 +31,7 @@ private fun showStartMenu(stage: Stage) {
 
     screenView.position((stage.unscaledWidth / 2.0) - screenView.width, (stage.unscaledHeight / 2.0) - screenView.height).addTo(stage.containerRoot)
 
-    playButton.onKeyDown {
+    playButton.keys.down {
         if (it.key == Key.ENTER) {
             stage.removeAllComponents()
             stage.removeChildren()
@@ -88,10 +88,10 @@ private fun showEndgameScreen(stage: Stage, game: Game) {
     debug.textLine("Best Score: $bestScore")
 
     screenView.position((stage.unscaledWidth / 2.0) - screenView.width, (stage.unscaledHeight / 2.0) - screenView.height).addTo(stage.containerRoot)
-    title.onKeyDown {
+    title.keys.down {
         if (it.key == Key.ENTER) {
             stage.removeAllComponents()
-            stage.forEachChildren { it.removeAllComponents() }
+            stage.forEachChild { child -> child.removeAllComponents() }
             stage.removeChildren()
             startNewGame(stage)
         }

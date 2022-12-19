@@ -1,23 +1,16 @@
 import com.soywiz.korev.EventDispatcher
+import com.soywiz.korev.EventListener
 import com.soywiz.korev.Key
-import com.soywiz.korev.keys
+import com.soywiz.korge.view.Stage
+import com.soywiz.korge.view.views
+import com.soywiz.korio.async.runBlockingNoSuspensions
+import com.soywiz.korio.dynamic.dyn
 
 /**
  * Maintains the state of all down keys for easy lookup using [get].
  */
-class KeyState(eventDispatcher: EventDispatcher) {
-    private val downKeys = mutableSetOf<Key>()
-
-    init {
-        eventDispatcher.keys {
-            down {
-                downKeys += key
-            }
-            up {
-                downKeys -= key
-            }
-        }
+class KeyState {
+    operator fun get(key: Key): Boolean = runBlockingNoSuspensions {
+        views().input.keys.pressing(key)
     }
-
-    operator fun get(key: Key): Boolean = downKeys.contains(key)
 }
