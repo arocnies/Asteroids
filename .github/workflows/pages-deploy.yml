@@ -56,7 +56,7 @@ jobs:
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v1
         with:
-          path: "build/www/index.html"
+          path: "build/www/"
 
   deploy:
     name: "Deploy site"
