@@ -44,7 +44,7 @@ jobs:
           gradle-version: wrapper
 
       - name: Run build with Gradle wrapper
-        run: ./gradlew packageJsClosureCompiler --scan
+        run: ./gradlew browserReleaseEsbuild --scan
 
       - name: Upload site
         uses: actions/upload-artifact@v3
