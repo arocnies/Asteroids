@@ -44,13 +44,13 @@ jobs:
           gradle-version: wrapper
 
       - name: Run build with Gradle wrapper
-        run: ./gradlew browserReleaseEsbuild --scan
+        run: ./gradlew browserProductionWebpack --scan
 
       - name: Upload site
         uses: actions/upload-artifact@v3
         with:
           name: site
-          path: build/www/
+          path: build/distributions/
           if-no-files-found: error
 
       - name: Upload site artifact
