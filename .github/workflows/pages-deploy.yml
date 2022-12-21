@@ -44,7 +44,7 @@ jobs:
           gradle-version: wrapper
 
       - name: Run build with Gradle wrapper
-        run: ./gradlew browserProductionWebpack --scan
+        run: ./gradlew jsBrowserProductionWebpack --scan
 
       - name: Upload site
         uses: actions/upload-artifact@v3
