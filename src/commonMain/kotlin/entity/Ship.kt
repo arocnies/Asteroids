@@ -1,12 +1,14 @@
 package entity
 
 import com.soywiz.klock.TimeSpan
+import com.soywiz.korau.sound.PlaybackTimes
 import com.soywiz.korau.sound.Sound
 import com.soywiz.korau.sound.SoundChannel
 import com.soywiz.korge.particle.ParticleEmitter
 import com.soywiz.korge.particle.ParticleEmitterView
 import com.soywiz.korge.particle.particleEmitter
 import com.soywiz.korge.view.*
+import com.soywiz.korio.async.runBlockingNoSuspensions
 import com.soywiz.korma.geom.Angle
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -26,28 +28,22 @@ class Ship(sprite: Container, thrustEmitter: ParticleEmitter, thrustSound: Sound
 	val backRightThrust: ParticleEmitterView
 	var torqueVolume: Double = 0.0
 	var thrustVolume: Double = 0.0
-	private lateinit var torqueSoundChannel: SoundChannel
-	private lateinit var thrustSoundChannel: SoundChannel
+	private var torqueSoundChannel: SoundChannel? = null
+	private var thrustSoundChannel: SoundChannel? = null
 
 	init {
-		GlobalScope.launch(Dispatchers.Default) {
-			delay(1000)
-			torqueSoundChannel = torqueSound.playForever(TimeSpan(200.0)).apply {
-				volume = 0.0
-			}
-			views().stage.addUpdater {
-				torqueSoundChannel.volume = torqueVolume
-			}
+		torqueSoundChannel = torqueSound.playNoCancelForever().apply {
+			volume = 0.0
 		}
-		GlobalScope.launch(Dispatchers.Default) {
-			delay(1000)
-			thrustSoundChannel = thrustSound.playForever().apply {
-				volume = 0.0
-				pitch = 0.1
-			}
-			views().stage.addUpdater {
-				thrustSoundChannel.volume = thrustVolume
-			}
+		sprite.addUpdater {
+			torqueSoundChannel?.volume = torqueVolume
+		}
+		thrustSoundChannel = thrustSound.playNoCancelForever().apply {
+			volume = 0.0
+			pitch = 0.1
+		}
+		sprite.addUpdater {
+			thrustSoundChannel?.volume = thrustVolume
 		}
 
 		forwardThrust = ParticleEmitterView(thrustEmitter)
@@ -95,8 +91,6 @@ class Ship(sprite: Container, thrustEmitter: ParticleEmitter, thrustSound: Sound
 	}
 	fun fire() {
 		println("FIRE!")
-		GlobalScope.launch {
-			shootSound.play()
-		}
+		shootSound.playNoCancel(PlaybackTimes.ONE)
 	}
 }
